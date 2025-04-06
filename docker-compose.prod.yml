@@ -1,0 +1,56 @@
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.prod
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      placement:
+        constraints:
+          - node.role == worker
+    environment:
+      - DEBUG=${DEBUG:-0}
+      - BOT_TOKEN=${BOT_TOKEN}
+      - BOT_PORT=${BOT_PORT:-8001}
+      - BOT_SECRET=${BOT_SECRET}
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      # Настройки мини-приложения
+      - MINIAPP_HOST=${MINIAPP_HOST:-localhost}
+      - MINIAPP_PORT=${MINIAPP_PORT:-3000}
+      - MINIAPP_SECURE=${MINIAPP_SECURE:-0}
+      # Настройки API
+      - API_HOST=${API_HOST:-localhost}
+      - API_PORT=${API_PORT:-8000}
+      - API_SECURE=${API_SECURE:-0}
+      # Настройки веб-интерфейса
+      - WEB_HOST=${WEB_HOST:-localhost}
+      - WEB_PORT=${WEB_PORT:-8080}
+      - WEB_SECURE=${WEB_SECURE:-0}
+    networks:
+      - bot-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    configs:
+      - source: bot-config
+        target: /home/bot-user/src/.env
+
+networks:
+  bot-network:
+    driver: overlay
+    attachable: true
+
+configs:
+  bot-config:
+    file: ./.env

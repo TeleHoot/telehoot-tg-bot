@@ -6,7 +6,6 @@
 MAKEFLAGS += --no-print-directory
 
 # Variables
-DOCKER_COMPOSE = docker-compose
 DOCKER_COMPOSE_PROD = docker-compose -f docker-compose.prod.yml
 UV = uv
 PRE_COMMIT = pre-commit
@@ -17,11 +16,6 @@ PYRIGHT = pyright
 # Help command
 help:
 	@echo "Available commands:"
-	@echo ""
-	@echo "== Development Environment =="
-	@echo "  up           - Start development containers (Docker)"
-	@echo "  down         - Stop and remove development containers"
-	@echo "  dev          - Start bot in development mode with reload"
 	@echo ""
 	@echo "== Production Environment =="
 	@echo "  prod         - Deploy production containers"
@@ -35,7 +29,6 @@ help:
 	@echo "  lint         - Check code style with Ruff (with auto-fix)"
 	@echo "  format       - Format code with Ruff formatter"
 	@echo "  type-check   - Static type checking with Pyright"
-	@echo "  test         - Run tests with pytest"
 	@echo ""
 	@echo "== Application Control =="
 	@echo "  start        - Run bot in production mode"
@@ -49,13 +42,6 @@ help:
 	@echo ""
 	@echo "== Miscellaneous =="
 	@echo "  help         - Show this help message"
-
-# Docker commands
-up:
-	$(DOCKER_COMPOSE) up -d --build
-
-down:
-	$(DOCKER_COMPOSE) down
 
 prod:
 	$(DOCKER_COMPOSE_PROD) up -d --build
@@ -80,16 +66,12 @@ format:
 type-check:
 	$(UV) run $(PYRIGHT)
 
-# Testing
-test:
-	$(UV) run $(PYTEST) -v --durations=0 tests/
-
 # Application control
 start:
-	$(UV) run python -m bot
+	$(UV) run -m src.main
 
 debug:
-	$(UV) run python -m bot --debug
+	$(UV) run -m src.main --debug
 
 # Create .env file from example.env on Unix systems
 create-env-unix:
@@ -117,7 +99,4 @@ uinit: install-deps create-env-unix
 winit: install-deps create-env-windows
 	@echo "Project initialized for Windows systems."
 
-# Start the development environment and the app
-dev: up migrate start
-
-.PHONY: help up down prod down-prod install-deps check lint format type-check test start debug create-env-unix create-env-windows uinit winit dev
+.PHONY: help up down prod down-prod install-deps check lint format type-check start debug create-env-unix create-env-windows uinit winit
